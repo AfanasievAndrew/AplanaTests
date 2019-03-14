@@ -1,0 +1,9 @@
+﻿{
+  "NeedSubsection": "Телевизоры",
+
+  "ElementsCount": 48,
+
+  "PriceFromValue": 20000,
+
+  "Manufacturer": [ "LG", "Samsung" ]
+}
