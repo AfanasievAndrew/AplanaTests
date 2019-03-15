@@ -5,5 +5,5 @@
 
   "PriceFromValue": 20000,
 
-  "Manufacturer": [ "LG", "Samsung" ]
+  "Manufacturers": [ "LG", "Samsung" ]
 }

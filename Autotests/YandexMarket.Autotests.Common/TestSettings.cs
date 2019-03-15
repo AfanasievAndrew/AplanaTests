@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using System.Configuration;
 
     public class TestSettings
     {
@@ -17,7 +18,11 @@
             {
                 throw new Exception($"Can not find {chromeDrivePath}");
             }
+
+            Scenario = ConfigurationManager.AppSettings["Scenario"];
         }
+
+        public string Scenario { get; }
 
         public string ChromeDriverDir { get; } = @"D:\Drivers\";
     }

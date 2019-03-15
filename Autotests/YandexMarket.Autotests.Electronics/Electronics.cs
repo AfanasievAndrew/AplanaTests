@@ -4,12 +4,14 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading;
     using NUnit.Framework;
     using OpenQA.Selenium;
     using OpenQA.Selenium.Interactions;
     using OpenQA.Selenium.Support.UI;
     using YandexMarket.Autotests.Common;
 
+    //TODO: Реализовать зависимость тест кейсов (с помощью флагов)
     [TestFixture]
     public class Electronics : TestFixture<TestSettingsElectronics>
     {
@@ -27,12 +29,13 @@
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
+            // Переходим в яндекс маркет
             Driver.Navigate().GoToUrl(TestSettings.YandexURL);
 
             var market = WebElementsHandling.GetWebElementByCssSelector(
                 Driver,
                 TestSettings.YandexMarketCssSelector,
-                TimeSpan.FromMinutes(1));
+                TimeSpan.FromSeconds(30));
 
             market.Click();
         }
@@ -40,6 +43,7 @@
         [SetUp]
         public void SetUp()
         {
+            // Ожидание всмлывающего окна запроса места расположения 
             if (setRegion)
             {
                 return;
@@ -50,7 +54,7 @@
                 var popupElement = WebElementsHandling.GetWebElementByCssSelector(
                     Driver,
                     ".popup2",
-                    TimeSpan.FromSeconds(2));
+                    TimeSpan.FromSeconds(5));
 
                 var buttons = Driver.FindElements(By.CssSelector(".popup2 .button2"));
 
@@ -67,6 +71,7 @@
         [Test]
         public void Test_001_GoToSection()
         {
+            // Переходим по маркету в нужный раздел
             var links = Driver.FindElements(By.CssSelector(TestSettings.SectionsMenuCssSelector));
 
             var electronics = links.Single(l => l.Text.Equals(TestSettings.NeedSection));
@@ -77,6 +82,7 @@
         [Test]
         public void Test_002_SetFilters()
         {
+            // Не получилось выбрать "Показывать по 12", оставил некоторые попытки
             try
             {
                 Driver.FindElement(By.CssSelector(TestSettings.ElementsCountButtonCssSelector)).Click();
@@ -86,7 +92,7 @@
                 Actions.SendKeys(Keys.Enter);
                 */
 
-                var buttons = Driver.FindElement(By.XPath($"//span[text()='Показывать по {TestSettings.ElementsCount}']/parent::*"));
+                var buttons = Driver.FindElement(By.XPath($"//span[text()='Показывать по {TestSettings.ScenarioSettings.ElementsCount}']/parent::*"));
                 buttons.Click();
 
                 /*
@@ -108,34 +114,51 @@
                 //Logger.Warning();
             }
 
-            var priceFrom = WebElementsHandling.GetWebElementById(Driver, TestSettings.PriceFromId, TimeSpan.FromMinutes(1));
+            // Меняем стоимость от
+            var priceFrom = WebElementsHandling.GetWebElementById(Driver, TestSettings.PriceFromId, TimeSpan.FromSeconds(10));
 
-            priceFrom.SendKeys(TestSettings.PriceFromValue + Keys.Enter);
+            priceFrom.SendKeys(TestSettings.ScenarioSettings.PriceFromValue + Keys.Enter);
 
-            var checkboxLG = WebElementsHandling.GetWebElementByXPath(Driver, TestSettings.GetCheckBoxxPathByName("LG"), TimeSpan.FromSeconds(10));
-            checkboxLG.Click();
+            // Устанавливаем нужные чекбоксы в true
+            foreach (var manufacturer in TestSettings.ScenarioSettings.Manufacturers)
+            {
+                var checkbox = WebElementsHandling.GetWebElementByXPath(Driver, TestSettings.GetCheckBoxxPathByName(manufacturer), TimeSpan.FromSeconds(10));
+                checkbox.Click();
+            }
 
-            var checkboxSumsung = WebElementsHandling.GetWebElementByXPath(Driver, TestSettings.GetCheckBoxxPathByName("Samsung"), TimeSpan.FromSeconds(20));
-            checkboxSumsung.Click();
+            // Успеваем получить элементы до того как чекбокс применился
+            Thread.Sleep(TimeSpan.FromSeconds(2));
 
-            var elements = Driver.FindElements(By.XPath(TestSettings.ElementListxPath));
-            
-            Assert.That(elements.Count == TestSettings.ElementsCount, $"Error: expected elements count {TestSettings.ElementsCount}, but now {elements.Count}");
+            // Проверка колличества элементов
+            var currentCount = GetElementsCount(3, TimeSpan.FromSeconds(2));
+
+            Assert.That(currentCount == TestSettings.ScenarioSettings.ElementsCount, $"Error: expected elements count {TestSettings.ScenarioSettings.ElementsCount}, but now {currentCount}");
         }
 
         [Test]
         public void Test_003_SearchFirstElement()
         {
-            var element = Driver.FindElements(By.CssSelector(TestSettings.TitleLinkElementsCssSelector)).First();
+            // Вытаскиваем первый элемент и ищем его
+            var element = Driver.FindElements(By.XPath(TestSettings.TitleLinkElementsxPath)).First();
             var text = element.Text;
 
             var search = Driver.FindElement(By.Id(TestSettings.SearchId));
             search.SendKeys(text + Keys.Enter);
 
-            var result = WebElementsHandling.GetWebElementByCssSelector(
-                Driver,
-                TestSettings.SearchResultHeaderCssSelector,
-                TimeSpan.FromMinutes(1));
+            IWebElement result;
+
+            // Хотел объеденить кейсы, но в итоге в конце расхождение :(
+            try
+            {
+                result = WebElementsHandling.GetWebElementByCssSelector(
+                    Driver,
+                    TestSettings.SearchResultHeaderCssSelector,
+                    TimeSpan.FromSeconds(30));
+            }
+            catch
+            {
+                result = Driver.FindElements(By.XPath(TestSettings.TitleLinkElementsxPath)).First();
+            }
 
             Assert.That(result.Text.Equals(text), $"Wrong text in result search title: expected '{text}', but now '{result.Text}'");
         }
@@ -150,7 +173,7 @@
 
                     WebElementsHandling.GetWebElementByLinkText(
                         Driver,
-                        TestSettings.NeedSubsection,
+                        TestSettings.ScenarioSettings.NeedSubsection,
                         TimeSpan.FromSeconds(10)).Click();
 
                     break;
@@ -168,5 +191,29 @@
                 }
             }
         }
+
+        private int GetElementsCount(int retryCount, TimeSpan delay)
+        {
+            int count = 0;
+
+            for (int i = 1; i <= retryCount; i++)
+            {
+                var elements = Driver.FindElements(By.XPath(TestSettings.ElementListxPath));
+
+                count = elements.Count;
+
+                if (elements.Count > TestSettings.ScenarioSettings.ElementsCount)
+                {
+                    Thread.Sleep(delay);
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return count;
+        }
+
     }
 }

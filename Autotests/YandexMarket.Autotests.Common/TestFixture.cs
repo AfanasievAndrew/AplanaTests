@@ -1,6 +1,4 @@
-﻿// TODO: Logging
-// TODO: Add other drivers
-namespace YandexMarket.Autotests.Common
+﻿namespace YandexMarket.Autotests.Common
 {
     using System;
     using NUnit.Framework;
@@ -8,6 +6,8 @@ namespace YandexMarket.Autotests.Common
     using OpenQA.Selenium.Chrome;
     using YandexMarket.Autotests.Common.CommonFunctions;
 
+    // TODO: Добавить логгирование
+    // TODO: Добавить поддержку других драйверов
     [TestFixture]
     public class TestFixture<T> where T : TestSettings, new()
     {

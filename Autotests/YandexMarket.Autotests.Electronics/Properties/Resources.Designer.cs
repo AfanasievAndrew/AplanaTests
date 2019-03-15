@@ -59,5 +59,41 @@ namespace YandexMarket.Autotests.Electronics.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;NeedSubsection&quot;: &quot;Наушники и Bluetooth-гарнитуры&quot;,
+        ///
+        ///  &quot;ElementsCount&quot;: 48,
+        ///
+        ///  &quot;PriceFromValue&quot;: 5000,
+        ///
+        ///  &quot;Manufacturers&quot;: [ &quot;Beats&quot; ]
+        ///}
+        ///.
+        /// </summary>
+        internal static string Headphones {
+            get {
+                return ResourceManager.GetString("Headphones", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;NeedSubsection&quot;: &quot;Телевизоры&quot;,
+        ///
+        ///  &quot;ElementsCount&quot;: 48,
+        ///
+        ///  &quot;PriceFromValue&quot;: 20000,
+        ///
+        ///  &quot;Manufacturers&quot;: [ &quot;LG&quot;, &quot;Samsung&quot; ]
+        ///}
+        ///.
+        /// </summary>
+        internal static string TV {
+            get {
+                return ResourceManager.GetString("TV", resourceCulture);
+            }
+        }
     }
 }

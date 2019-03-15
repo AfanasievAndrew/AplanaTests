@@ -2,14 +2,14 @@
 {
     using System.Collections.Generic;
 
-    class ScenarioSettings
+    public sealed class ScenarioSettings
     {
-        public string NeedSubsection { get; } = "Телевизоры";
+        public string NeedSubsection { get; set; }
 
-        public int ElementsCount { get; } = 48;
+        public int ElementsCount { get; set; }
 
-        public int PriceFromValue { get; } = 20000;
+        public int PriceFromValue { get; set; }
 
-        IEnumerable<string> Manufacturer { get; } = new []{ "LG", "Samsung" };
+        public IEnumerable<string> Manufacturers { get; set; }
     }
 }
